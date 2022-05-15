@@ -1,0 +1,32 @@
+<!--/-->
+<launch>
+<!-- run motion -->
+	<node name="serial_node_one"        pkg="rosserial_python"      type="serial_node.py">
+    	<param name="port"              type="string"               value="/dev/ttyACM0"/>
+    	<param name="baud"              type="int"                  value="57600"/>
+    </node> 
+<!-- run left_encoder -->
+	<!-- <node name="serial_node_two"        pkg="rosserial_python"      type="serial_node.py">
+    	<param name="port"              type="string"               value="/dev/ttyACM1"/>
+    	<param name="baud"              type="int"                  value="57600"/>
+    </node>  -->
+ <!-- run right_encoder -->
+	<!-- <node name="serial_node_three"      pkg="rosserial_python"      type="serial_node.py">
+    	<param name="port"              type="string"               value="/dev/ttyACM2"/>
+    	<param name="baud"              type="int"                  value="9600"/>
+    </node> -->
+
+
+<!--
+	<arg name="model" default="$(find mine_pack)/urdf/Red_Dwarf.urdf"/>
+  	<arg name="gui" default="true" />
+  	<arg name="rvizconfig" default="$(find urdf_tutorial)/rviz/urdf.rviz" />
+
+  	<param name="robot_description" command="$(find xacro)/xacro $(arg model)" />
+
+  	<node if="$(arg gui)" name="joint_state_publisher" pkg="joint_state_publisher_gui" type="joint_state_publisher_gui" />
+  	<node unless="$(arg gui)" name="joint_state_publisher" pkg="joint_state_publisher" type="joint_state_publisher" />
+  	<node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher" />
+  	<node name="rviz" pkg="rviz" type="rviz" args="-d $(arg rvizconfig)" required="true" />	
+-->
+</launch>

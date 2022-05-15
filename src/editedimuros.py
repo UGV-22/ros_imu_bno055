@@ -98,7 +98,7 @@ class SensorIMU:
         self.oscillator_str = rospy.get_param(self.node_name + '/oscillator', 'INTERNAL')
         self.reset_orientation = rospy.get_param(self.node_name + '/reset_orientation', True)
         self.frequency = rospy.get_param(self.node_name + '/frequency', 20)
-        self.use_magnetometer = rospy.get_param(self.node_name + '/use_magnetometer', True)
+        self.use_magnetometer = rospy.get_param(self.node_name + '/use_magnetometer', False)
         self.use_temperature = rospy.get_param(self.node_name + '/use_temperature', False)
 
         switcher = {
@@ -273,21 +273,14 @@ class SensorIMU:
     def publish_imu_data(self):
             
         imu_data = Imu()  
-        imu_magnetometer = MagneticField()
         
         quaternion = self.bno055.get_quaternion_orientation()
         linear_acceleration = self.bno055.get_linear_acceleration()
         gyroscope = self.bno055.get_gyroscope()
-        magnetometer = self.bno055.get_magnetometer()
-        
         
         imu_data.header.stamp = rospy.Time.now()
         imu_data.header.frame_id = self.frame_id
         imu_data.header.seq = self.imu_data_seq_counter
-        imu_magnetometer.header.stamp = rospy.Time.now()
-        imu_magnetometer.header.frame_id = self.frame_id
-        imu_magnetometer.header.seq = self.imu_data_seq_counter
-        
 
         imu_data.orientation.w = quaternion[0]
         imu_data.orientation.x = quaternion[1]
@@ -302,20 +295,19 @@ class SensorIMU:
         imu_data.angular_velocity.y = gyroscope[1]
         imu_data.angular_velocity.z = gyroscope[2]
 
-        imu_magnetometer.magnetic_field.x = magnetometer[0]
-        imu_magnetometer.magnetic_field.y = magnetometer[1]
-        imu_magnetometer.magnetic_field.z = magnetometer[2]
-
+        imu_data.mag_f.x = magnetometer[0]
+        imu_data.mag_f.y = magnetometer[1]
+        imu_data.mag_f.z = magnetometer[2]
+        
+        f self.use_magnetometer == True:
+            self.pub_imu_magnetometer = rospy.Publisher('imu/magnetometer', MagneticField, queue_size=1)
         imu_data.orientation_covariance[0] = -1
         imu_data.linear_acceleration_covariance[0] = -1
         imu_data.angular_velocity_covariance[0] = -1
 
         self.imu_data_seq_counter=+1
-        self.imu_magnetometer_seq_counter=+1
 
         self.pub_imu_data.publish(imu_data)
-        self.pub_imu_magnetometer.publish(imu_magnetometer)
-        
 
 
     def publish_imu_magnetometer(self):

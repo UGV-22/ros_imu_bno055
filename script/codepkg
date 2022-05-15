@@ -1,0 +1,107 @@
+#!/usr/bin/env python
+
+import rospy
+import math
+from sensor_msgs.msg import Imu
+from sensor_msgs.msg import MagneticField
+from std_msgs.msg import Float32
+from std_msgs.msg import String
+from std_msgs.msg import Float64
+yaw = 0
+ax=0
+ay=0
+az=0
+gx=0
+gy=0
+gz=0
+phiRad = 0
+thetaRad = 0
+psi = 0
+mx = 0 
+my = 0
+mz = 0 
+Xm = 0
+Ym = 0
+tOld=0
+
+def get_acc(msgg):
+        global yaw
+        global ax
+        global ay
+        global az
+        global gx
+        global gy
+        global gz
+        global phiRad 
+        global thetaRad
+        thetaM = 0
+        phiM =0
+        theta = 0
+        phi = 0
+        thetaG = 0
+        phiG = 0
+         
+
+        ax = msgg.linear_acceleration.x
+        ay = msgg.linear_acceleration.y
+        az = msgg.linear_acceleration.z
+
+        gx = msgg.angular_velocity.x
+        gy = msgg.angular_velocity.y
+        gz = msgg.angular_velocity.z
+        
+        dt = rospy.Time.to_sec - tOld
+        tOld = rospy.Time.to_sec
+
+        thetaM=-math.atan2(ax/9.8,az/9.8)/2/3.141592654*360
+        phiM=-math.atan2(ay/9.8,az/9.8)/2/3.141592654*360
+
+        theta=(theta+gy*dt)*.95+thetaM*.05
+        phi=(phi-gx*dt)*.95+ phiM*.05
+
+        thetaG=thetaG+gy*dt
+        phiG=phiG-gx*dt
+
+        phiRad=phi/360*(2*3.14)
+        thetaRad=theta/360*(2*3.14)
+
+
+def get_mag(msgg1):
+        global psi
+        global mx
+        global my
+        global mz
+        global Xm
+        global Ym
+        global phiRad
+        global thetaRad
+        global yaw
+
+        mx = msgg1.magnetic_field.x
+        my = msgg1.magnetic_field.y
+        mz = msgg1.magnetic_field.z
+
+        Xm=mx*math.cos(thetaRad)-my* math.sin (phiRad)*math.sin(thetaRad)+mz*math.cos(phiRad)*math.sin(thetaRad)
+        Ym=my*math.cos(phiRad)+mz*math.sin(phiRad)
+ 
+        psi=math.atan2(Ym,Xm)/(2*3.14)*360
+        yaw = psi
+
+
+def listener():
+     
+     rospy.init_node('listener', anonymous=True)
+     rospy.Subscriber("imu", Imu, get_acc) 
+     rospy.Subscriber("imu/magnetometer", MagneticField , get_mag)
+     ang_pub = rospy.Publisher('yaw', Float64, queue_size=10)
+     rate=rospy.Rate(10)
+
+     while  not rospy.is_shutdown():
+             ang_pub.publish(yaw)
+             rate.sleep()
+
+if __name__ == '__main__':
+        try:
+                listener()
+        except rospy.ROSInterruptException:
+                pass
